@@ -1,10 +1,28 @@
 import os
 import asyncio
+from threading import Thread
+from flask import Flask
+from itertools import cycle
 
 import pandas as pd
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
+
+# Keeping the bot alive
+app = Flask('')
+
+@app.route('/')
+def main():
+  return "Your Bot Is Ready"
+
+def run():
+  app.run(host="0.0.0.0", port=8000)
+
+def keep_alive():
+  server = Thread(target=run)
+  server.start()
+
 
 # Using excel and pandas
 try:
@@ -21,6 +39,13 @@ verifier = commands.Bot(
     command_prefix="!!",
     intents=intents
 )
+
+# Adding a background task
+status = cycle(['with Python','JetHub'])
+
+@tasks.loop(seconds=10)
+async def change_status():
+  await verifier.change_presence(activity=discord.Game(next(status)))
 
 @verifier.event
 async def on_ready():
